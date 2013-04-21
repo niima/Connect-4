@@ -1,5 +1,5 @@
 pieceSize = 100; // width = height;
-
+chessType = true;
 var canvas = document.getElementById("myCanvas");
 canvas.addEventListener("click", canvasOnClick, false);
 canvas.width = 400;
@@ -37,10 +37,16 @@ function canvasOnClick(e){
     if(cell.row == 0) return; // leave the first line empty
 
     ctx.beginPath();
-
     ctx.arc(cell.column*100 + 50, 
             cell.row*100 + 50, 50, 0, 2*Math.PI, false);
-    ctx.fillStyle = "#8EF";
+    if( chessType == true){
+        ctx.fillStyle = "#0A0000";
+        chessType = false;
+    }
+    else{
+        ctx.fillStyle = "#FF3030";
+        chessType = true;
+    }
     ctx.fill();
     ctx.stroke();
 }
