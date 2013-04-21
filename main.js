@@ -41,7 +41,7 @@ function canvasOnClick(e){
             cell.row*100 + 50, 50, 0, 2*Math.PI, false);
     if( chessType == true){
         ctx.fillStyle = "#0A0000";
-        chessType = false;   // a test
+        chessType = false;   
     }
     else{
         ctx.fillStyle = "#FF3030";
