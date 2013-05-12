@@ -14,14 +14,36 @@ html, body
   </head>
   
 <body>
-<center>
+<div id="whole" style="width:100%;float:left;">
+<div id="menu" style="width:10%;">
+  Diff 
+  <select id="diff">
+  <option value="4">easy</option>
+  <option value="6">medium</option>
+  <option value="8">hard</option>
+  </select>
+  First
+  <select id="first">
+  <option value="-1">human</option>
+  <option value="1">computer</option>
+  </select>
+<input type="button" id="startButton" value="start" onClick="startButton(this);"></input>
+
+</div>
+
+<div id="board" style="width:80%;">
   <canvas id="myCanvas" width="500" height="600">
     Your browser does not support HTML5 canvas.
   </canvas>
-</center>
+</div>
+<script src="ai.js"></script>
 <script src="header.js"></script>
 <script src="logic.js"></script>
 <script src="main.js"></script>
+<script src="ai.js"></script>
+
+</div>
+
 <hr>
 <address></address>
 <!-- hhmts start -->Last modified: Fri Apr 12 00:21:04 EDT 2013 <!-- hhmts end -->

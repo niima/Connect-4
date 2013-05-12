@@ -1,4 +1,4 @@
-// Implement the logc of the game
+// Implement the logic of the game
 function gameEngine(pieceColor){
     this._init(pieceColor);
 }
@@ -34,6 +34,8 @@ gameEngine.prototype = {
                 board[cell.row][cell.column] = this.nextPieceColor;
             }
             else{
+                if(board[cell.row][cell.column] != this.nextPieceColor)
+                    return []; // you cannot popup opposite pieces
                 // simulate the popup op
                 var pos = 4;
                 for(; pos > 0; --pos){
@@ -45,7 +47,7 @@ gameEngine.prototype = {
                     //board[pos][cell.column] = pieceStatus.EMPTY;
                 }
                 board[pos+1][cell.column] = pieceStatus.EMPTY;
-                r.push([pos+1, cell.column, pieceStatus.EMPTY]);
+                r.push([pos + 1, cell.column, pieceStatus.EMPTY]);
             }
             this.pieceColorExchage();
             return r;
@@ -56,5 +58,6 @@ gameEngine.prototype = {
             this.nextPieceColor = pieceStatus.RED;
         else if(this.nextPieceColor == pieceStatus.RED)
             this.nextPieceColor = pieceStatus.BLACK;
+        else console.log("nextPieceColor = empty");
     },
 }

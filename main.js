@@ -1,34 +1,76 @@
-canvas.addEventListener("click", canvasOnClick, false);
 drawBoard();
-initBoard();
-engine = new gameEngine(pieceStatus.BLACK);
 
-function drawBoard(){
-    // var my_gradient=ctx.createLinearGradient(0,0,0,500);
-    // my_gradient.addColorStop(0,"white");
-    // my_gradient.addColorStop(1,"green");
-    // ctx.fillStyle=my_gradient;
-    // ctx.fillRect(0, 0, canvas.width, canvas.height); 
 
+function initGame(){
+    
+    initBoard();
+    drawBoard();
+    engine = new gameEngine(setting.moveFirst);
+    canvas.addEventListener("click", canvasOnClick, false);
+    document.getElementById("startButton").value = "stop";
+    if(setting.moveFirst == pieceStatus.RED)
+        computerMove();
+}
+function finalizeGame(){
+    engine = null;
+    // initBoard();
+    //drawBoard();
+    canvas.removeEventListener("click", canvasOnClick);
+    document.getElementById("startButton").value = "start";
+}
+
+function startButton()
+{
+    if(document.getElementById("startButton").value == "start"){
+        setting.diff = parseInt(document.getElementById("diff").value);
+        setting.moveFirst = parseInt(document.getElementById("first").value);
+       
+        initGame();
+    }
+    else{
+        finalizeGame();
+        //document.getElementById("startButton").value = "start";
+
+    }
+}
+
+function printStat(score, ply, nodes, maxp, minp, dotree){
+    ctx.clearRect(0,0,400,100);
     ctx.font = "20px serif";
-    ctx.strokeText("Score: 40",0, 20);
-    ctx.strokeText("Ply: 4", 0, 40);
+    ctx.strokeText("Score: "+score,10, 20);
+    ctx.strokeText("Ply: "+ply, 10, 50);
+    ctx.strokeText("nodes: "+nodes, 10, 80);
+    ctx.strokeText("max prunning: "+maxp, 200, 20);
+    ctx.strokeText("min pruning: "+minp, 200, 50);
+
+    ctx.strokeText("depth of tree: "+dotree, 200, 80);
+}
+function drawBoard(){
+    ctx.clearRect(0,0,500,700);
+    ctx.font = "20px serif";
+    ctx.strokeText("Score: 0",10, 20);
+    ctx.strokeText("Ply: 0", 10, 50);
+
+    ctx.strokeText("max prunning: 0", 200,20);
+    ctx.strokeText("min pruning: 0", 200, 50);
+    ctx.strokeText("nodes: 0", 10,80);
+    ctx.strokeText("depth of tree: 0", 200,80);
     //ctx.clearRect(0,0,100,100);
-    ctx.strokeText("Diff", 100, 20);
+    // ctx.strokeText("Diff", 100, 20);
     ctx.beginPath();
-    // 3 boxes to show the difficulty
-    ctx.fillStyle = "#66FF66";
-    ctx.fillRect(140, 4, 40, 20);
-    ctx.fillStyle = "#0066FF";
-    ctx.fillRect(190, 4, 40, 20);
-    ctx.fillStyle = "#FF3300";
-    ctx.fillRect(240, 4, 40, 20);
+    // // 3 boxes to show the difficulty
+    // ctx.fillStyle = "#66FF66";
+    // ctx.fillRect(140, 4, 40, 20);
+    // ctx.fillStyle = "#0066FF";
+    // ctx.fillRect(190, 4, 40, 20);
+    // ctx.fillStyle = "#FF3300";
+    // ctx.fillRect(240, 4, 40, 20);
 
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(300, 4, 50, 20);
-    ctx.strokeText("Start", 300, 20);
-
+    // ctx.strokeStyle = "#000000";
+    // ctx.fillStyle = "#FFFFFF";
+    // ctx.fillRect(300, 4, 50, 20);
+    // ctx.strokeText("Start", 300, 20);
+    // ctx.strokeText("Go First: human", 100, 50);
     /* vertical lines */
     for (var x = 0; x <= canvas.width; x += pieceSize) {
         ctx.moveTo(x, pieceSize);
@@ -40,32 +82,33 @@ function drawBoard(){
         ctx.moveTo(0, y);
         ctx.lineTo(canvas.width, y);
     }
-    ctx.fill();
+    
     ctx.stroke();
 }
 
 function initBoard(){
+    rawBoard.length = 0;
     for(var i = 0; i < 6; ++i){
-        board[i] = new Array();
+        rawBoard[i] = new Array();
         for(var j = 0; j < 4; ++j){
-            board[i].push(pieceStatus.EMPTY);
+            rawBoard[i].push(pieceStatus.EMPTY);
         }
     }
 }
 
-function canvasOnClick(e){
-    var cell = getCursorPosition(e);
-    
-//    alert(cell.row+" "+cell.column);
-    //res: [[row,col,color],]
-    var res = engine.getNextAction(cell, board);
+function drawMove(cell){
+    var oldStroke = ctx.strokeStyle;
+    var oldFill = ctx.fillStyle;
+    var res = engine.getNextAction(cell, rawBoard);
+    if(res == "") return false;
     var arr = res.pop();
     while(arr!= null){
-        //alert(arr);
+//        console.log("draw: " + arr);
         ctx.beginPath();
         ctx.arc(arr[1]*100 + 50, 
                 arr[0]*100 + 50, pieceRadix, 
                 0, 2*Math.PI, false);
+
         if(arr[2] == pieceStatus.BLACK){
             ctx.strokeStyle = "#0A0000";
             ctx.fillStyle = "#0A0000";
@@ -86,34 +129,37 @@ function canvasOnClick(e){
         }
         arr = res.pop();
     }
+    ctx.strokeStyle = oldStroke;
+    ctx.fillStyle = oldFill;
+    return true;
+}
+function canvasOnClick(e){
+    
+    var cell = getCursorPosition(e);
+    if(drawMove(cell) == true)
+        computerMove();
+}
+function computerMove(){
+    var root = new State();
+    root.board = [].concat(rawBoard);
+    root.nextColor = engine.nextPieceColor;
+    var r = alphaBetaSearch(root);
+    if(r.action != null)
+        console.log("in main: "+ r.action.row+":"+r.action.column +",");
+    console.log("in main: " + r.terminated +"," + r.value);
+    if(r.action == null) 
+        console.log("Error:"+r);
+    else drawMove(r.action);
 
-    // for(var i = 0; i < res.length; ++i){
-    //     alert(i+"/"+res.lenth+" " +res[i][2]);
-    //     ctx.beginPath();
-    //     ctx.arc(res[i][1]*100 + 50, 
-    //             res[i][0]*100 + 50, pieceRadix, 
-    //             0, 2*Math.PI, false);
-    //     if(res[i][2] == pieceStatus.BLACK){
-    //         ctx.strokeStyle = "#0A0000";
-    //         ctx.fillStyle = "#0A0000";
-    //         ctx.fill();
-    //         ctx.stroke();
-    //     }
-    //     else if(res[i][2] == pieceStatus.RED){
-    //         ctx.strokeStyle = "#FF3030";
-    //         ctx.fillStyle = "#FF3030";
-    //         ctx.fill();
-    //         ctx.stroke();
-    //     }
-    //     else{
-    //         ctx.clearRect(res[i][1]*100,
-    //                       res[i][0]*100,
-    //                       pieceSize,
-    //                       pieceSize);
-    //     }
+    if(r.terminated == true){
+        if(r.value == 2*MAX_VALUE) alert("You lose");
+        else if(r.value == 3*MIN_VALUE) alert("draw");
+        else if(r.value == 2*MIN_VALUE) alert("You win");
+        finalizeGame();
+        
+    }
 
-    // }
-
+    
 }
 
 function getCursorPosition(e) {
